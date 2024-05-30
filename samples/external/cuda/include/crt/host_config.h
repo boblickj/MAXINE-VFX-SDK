@@ -1,5 +1,5 @@
 /*
- * Copyright 1993-2022 NVIDIA Corporation.  All rights reserved.
+ * Copyright 1993-2024 NVIDIA Corporation.  All rights reserved.
  *
  * NOTICE TO LICENSEE:
  *
@@ -113,6 +113,17 @@
 
 #endif /* __ICC */
 
+#if defined(__GRCO_CLANG_COMPILER__)
+#if (__GRCO_CLANG_COMPILER__ == 1) && ((__clang_major__ < 16) || (__clang_major__ > 17))
+#error -- unsupported Grace clang version! The version must be 16.x to 17.x. The nvcc flag '-allow-unsupported-compiler' can be used to override this version check; however, using an unsupported host compiler may cause compilation failure or incorrect run time execution. Use at your own risk.
+#endif  /* (__GRCO_CLANG_COMPILER__ == 1) && ((__clang_major__ < 16) || (__clang_major__ > 17)) */
+
+#endif /* __GRCO_CLANG_COMPILER__  */
+
+#if defined(__INTEL_CLANG_COMPILER)
+#error -- unsupported Intel ICX compiler! The nvcc flag '-allow-unsupported-compiler' can be used to override this version check; however, using an unsupported host compiler may cause compilation failure or incorrect run time execution. Use at your own risk.
+#endif /* __INTEL_CLANG_COMPILER */
+
 #if defined(__powerpc__)
 
 #if defined(__ibmxl_vrm__) && !(__ibmxl_vrm__ >= 0x0d010000 && __ibmxl_vrm__ < 0x0d020000) && \
@@ -127,28 +138,34 @@
 
 #if defined(__GNUC__)
 
-#if __GNUC__ > 11
+#if __GNUC__ > 13
 
-#error -- unsupported GNU version! gcc versions later than 11 are not supported! The nvcc flag '-allow-unsupported-compiler' can be used to override this version check; however, using an unsupported host compiler may cause compilation failure or incorrect run time execution. Use at your own risk.
+#error -- unsupported GNU version! gcc versions later than 13 are not supported! The nvcc flag '-allow-unsupported-compiler' can be used to override this version check; however, using an unsupported host compiler may cause compilation failure or incorrect run time execution. Use at your own risk.
 
-#endif /* __GNUC__ > 11 */
+#endif /* __GNUC__ > 13 */
 
 
-#if defined(__clang__) && !defined(__ibmxl_vrm__) && !defined(__ICC) && !defined(__HORIZON__) && !defined(__APPLE__)
+#if defined(__HORIZON__)
+#if (__clang_major__ >= 18) || (__clang_major__ < 3) || ((__clang_major__ == 3) &&  (__clang_minor__ < 3))
+#error -- unsupported HOS clang version! The version must be must be less than 18 and greater than 3.2 . The nvcc flag '-allow-unsupported-compiler' can be used to override this version check; however, using an unsupported host compiler may cause compilation failure or incorrect run time execution. Use at your own risk.
+#endif  /* (__clang_major__ >= 18) || (__clang_major__ < 3) || ((__clang_major__ == 3) &&  (__clang_minor__ < 3)) */
+#endif /* __HORIZON__  */
 
-#if (__clang_major__ >= 14) || (__clang_major__ < 3) || ((__clang_major__ == 3) &&  (__clang_minor__ < 3))
-#error -- unsupported clang version! clang version must be less than 14 and greater than 3.2 . The nvcc flag '-allow-unsupported-compiler' can be used to override this version check; however, using an unsupported host compiler may cause compilation failure or incorrect run time execution. Use at your own risk.
+#if defined(__clang__) && !defined(__ibmxl_vrm__) && !defined(__ICC) && !defined(__HORIZON__) && !defined(__APPLE__) && !defined(__GRCO_CLANG_COMPILER__)
 
-#endif  /* (__clang_major__ >=  14) || (__clang_major__ < 3) || ((__clang_major__ == 3) &&  (__clang_minor__ < 3)) */
+#if (__clang_major__ >= 18) || (__clang_major__ < 3) || ((__clang_major__ == 3) &&  (__clang_minor__ < 3))
+#error -- unsupported clang version! clang version must be less than 18 and greater than 3.2 . The nvcc flag '-allow-unsupported-compiler' can be used to override this version check; however, using an unsupported host compiler may cause compilation failure or incorrect run time execution. Use at your own risk.
 
-#endif /* defined(__clang__) && !defined(__ibmxl_vrm__) && !defined(__ICC) && !defined(__HORIZON__) && !defined(__APPLE__) */
+#endif  /* (__clang_major__ >=  18) || (__clang_major__ < 3) || ((__clang_major__ == 3) &&  (__clang_minor__ < 3)) */
+
+#endif /* defined(__clang__) && !defined(__ibmxl_vrm__) && !defined(__ICC) && !defined(__HORIZON__) && !defined(__APPLE__) && !defined(__GRCO_CLANG_COMPILER__) */
 
 
 #endif /* __GNUC__ */
 
 #if defined(_WIN32)
 
-#if _MSC_VER < 1910 || _MSC_VER >= 1940
+#if _MSC_VER < 1910 || _MSC_VER >= 1950
 
 #error -- unsupported Microsoft Visual Studio version! Only the versions between 2017 and 2022 (inclusive) are supported! The nvcc flag '-allow-unsupported-compiler' can be used to override this version check; however, using an unsupported host compiler may cause compilation failure or incorrect run time execution. Use at your own risk.
 
@@ -156,7 +173,7 @@
 
 #pragma message("support for this version of Microsoft Visual Studio has been deprecated! Only the versions between 2017 and 2022 (inclusive) are supported!")
 
-#endif /* (_MSC_VER < 1910 || _MSC_VER >= 1940) || (_MSC_VER >= 1910 && _MSC_VER < 1910) */
+#endif /* (_MSC_VER < 1910 || _MSC_VER >= 1950) || (_MSC_VER >= 1910 && _MSC_VER < 1910) */
 
 #endif /* _WIN32 */
 #endif  /* !__NV_NO_HOST_COMPILER_CHECK */
