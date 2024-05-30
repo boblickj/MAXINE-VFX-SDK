@@ -9,7 +9,7 @@ target_include_directories(VideoEffectsAppCLI PUBLIC ${SDK_INCLUDES_PATH})
 
 if(MSVC)
     target_link_libraries(VideoEffectsAppCLI PUBLIC
-        opencv346
+        opencv490
         NVVideoEffects
         ${CMAKE_CURRENT_SOURCE_DIR}/../external/cuda/lib/x64/cudart.lib
         )
