@@ -1,2 +1,4 @@
+bin
 build
 output
+samples/external/fltk
