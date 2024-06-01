@@ -1,0 +1,72 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cpp}
+decl {\#include "Converter.cpp"} {private local
+}
+
+Function {} {open
+} {
+  Fl_Window mainWindow {
+    label {NVIDIA Maxine SDK} open selected
+    xywh {1680 358 344 475} type Double visible
+  } {
+    Fl_Choice effetChoice {
+      label Effect
+      xywh {115 23 150 20} down_box BORDER_BOX
+      code0 {effetChoice->add("ArtifactReduction");}
+      code1 {effetChoice->add("SuperRes");}
+      code2 {effetChoice->add("Upscale");}
+    } {}
+    Fl_Check_Button modeInput {
+      label {Low Quaility Source}
+      xywh {228 365 20 20} down_box DOWN_BOX align 4
+    }
+    Fl_Value_Input resolutionInput {
+      label {Target Resolution}
+      tooltip {Must be 1.33x, 1.5x, 2x, 3x, or 4x of input resolution} xywh {153 55 88 20}
+    }
+    Fl_Button submitButton {
+      label Convert
+      callback {printf("Success")}
+      xywh {30 411 93 36}
+    }
+    Fl_Box {} {
+      xywh {9 95 320 84} box BORDER_FRAME color 32
+    }
+    Fl_Button modelFolderButton {
+      label {Model Directory}
+      callback {printf("Placeholder")}
+      xywh {110 108 118 28}
+    }
+    Fl_Output modelFolderOutput {
+      xywh {21 144 300 20}
+    }
+    Fl_Box {} {
+      xywh {9 179 320 84} box BORDER_FRAME color 32
+    }
+    Fl_Button inputFileButton {
+      label {Input File}
+      callback {printf("Placeholder")}
+      xywh {116 187 112 28}
+    }
+    Fl_Output inputFileOutput {
+      xywh {21 223 300 20}
+    }
+    Fl_Box {} {
+      xywh {9 263 320 84} box BORDER_FRAME color 32
+    }
+    Fl_Button outputFolderButton {
+      label {Output Directory}
+      callback {printf("Placeholder")}
+      xywh {116 271 118 28}
+    }
+    Fl_Output outputFolderOutput {
+      xywh {21 307 300 24}
+    }
+    Fl_Progress conversionProgrees {
+      label {Conversion Progrees}
+      xywh {153 411 168 35}
+    }
+  }
+}
