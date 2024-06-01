@@ -179,7 +179,7 @@ static int ParseMyArgs(int argc, char** argv) {
   return errs;
 }
 
-void consoleCallback(float percentComplete) {
+void cb_consoleUpdateProgress(float percentComplete) {
   fprintf(stderr, "\b\b\b\b%3.0f%%", percentComplete);
 }
 
@@ -236,10 +236,10 @@ int main(int argc, char** argv) {
     } else {
       if (IsImageFile(FLAG_inFile.c_str()))
         fxErr = app.processImage(FLAG_inFile.c_str(), FLAG_outFile.c_str(),
-                                 finfo, *consoleCallback);
+                                 finfo, *cb_consoleUpdateProgress);
       else
         fxErr = app.processMovie(FLAG_inFile.c_str(), FLAG_outFile.c_str(),
-                                 finfo, *consoleCallback);
+                                 finfo, *cb_consoleUpdateProgress);
     }
   }
 

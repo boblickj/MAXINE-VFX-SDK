@@ -70,7 +70,7 @@ static void showFileChooser(Fl_Native_File_Chooser *targetChooser,
 
 static void cb_modelFolderButton(Fl_Button *, void *) {
   directoryChooser->directory(
-      "C:\\Users\\bobli\\Documents\\Code\\cpp\\MAXINE-VFX-SDK\\bin\\models");
+      "C:\\");
   directoryChooser->title("Select the Model Directory");
 
   showFileChooser(directoryChooser, modelFolderOutput);
@@ -84,7 +84,7 @@ static void cb_inputFileButton(Fl_Button *, void *) {
 
 static void cb_outputFolderButton(Fl_Button *, void *) {
   directoryChooser->directory(
-      "C:\\Users\\bobli\\Documents\\Code\\cpp\\MAXINE-VFX-SDK\\output");
+      "C:\\");
   directoryChooser->title("Select the Output Directory");
 
   showFileChooser(directoryChooser, outputFolderOutput);
@@ -108,7 +108,7 @@ static void activateGUI() {
   outputFolderButton->activate();
 }
 
-void guiCallback(float percentComplete) {
+void cb_guiUpdateProgress(float percentComplete) {
   conversionProgrees->value(percentComplete);
   Fl::check();
 }
@@ -170,11 +170,11 @@ static void cb_submitButton(Fl_Button *, void *) {
     if (IsImageFile(inputFileOutput->value())) {
       app.setShow(true);
       fxErr = app.processImage(inputFileOutput->value(), outputFullPath.c_str(),
-                               finfo, *guiCallback);
+                               finfo, *cb_guiUpdateProgress);
     } else {
       app.setShow(false);
       fxErr = app.processMovie(inputFileOutput->value(), outputFullPath.c_str(),
-                               finfo, *guiCallback);
+                               finfo, *cb_guiUpdateProgress);
     }
   }
 
