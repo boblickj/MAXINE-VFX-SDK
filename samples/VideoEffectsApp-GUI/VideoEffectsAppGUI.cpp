@@ -10,17 +10,13 @@
 #include <FL/Fl_Output.H>
 #include <FL/Fl_Progress.H>
 #include <FL/Fl_Value_Input.H>
-#include <shellapi.h>
 
 #include <filesystem>
 
 #include "Converter.cpp"
 
-#ifdef _WIN32
+
 #define DEFAULT_CODEC "avc1"
-#else  // !_WIN32
-#define DEFAULT_CODEC "H264"
-#endif  // _WIN32
 
 namespace fs = std::filesystem;
 

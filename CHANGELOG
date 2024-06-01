@@ -1,3 +1,6 @@
-Changelog (v0.7.2.0)
+Changelog (v0.8.0.0)
 --------------------
-  - AI Green Screen - Latency improvements
+  - Update CudaRt from 11.6 to 12.5
+  - Update OpenCV from 3.4.6 to 4.9.0
+  - Attempt to copy dependencies to source tree if available
+  - Add new GUI for VideoEffectsApp (Windows Only)

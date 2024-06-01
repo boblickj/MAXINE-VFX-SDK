@@ -25,12 +25,9 @@ SOFTWARE.
 #include "nvVideoEffects.h"
 #include "opencv2/opencv.hpp"
 
-#ifdef _MSC_VER
 #define strcasecmp _stricmp
 #include <Windows.h>
-#else  // !_MSC_VER
-#include <sys/stat.h>
-#endif  // _MSC_VER
+#include <shellapi.h>
 
 #define BAIL_IF_ERR(err) \
   do {                   \
