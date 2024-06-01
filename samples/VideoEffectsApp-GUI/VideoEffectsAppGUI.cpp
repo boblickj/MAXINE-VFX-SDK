@@ -10,10 +10,18 @@
 #include <FL/Fl_Output.H>
 #include <FL/Fl_Progress.H>
 #include <FL/Fl_Value_Input.H>
+#include <shellapi.h>
 
 #include <filesystem>
 
 #include "Converter.cpp"
+
+#ifdef _WIN32
+#define DEFAULT_CODEC "avc1"
+#else  // !_WIN32
+#define DEFAULT_CODEC "H264"
+#endif  // _WIN32
+
 namespace fs = std::filesystem;
 
 Fl_Double_Window *mainWindow = (Fl_Double_Window *)0;
@@ -39,11 +47,16 @@ Fl_Output *outputFolderOutput = (Fl_Output *)0;
 Fl_Button *submitButton = (Fl_Button *)0;
 Fl_Progress *conversionProgrees = (Fl_Progress *)0;
 
+static void sendAlert(const char *message) {
+  fl_alert(message);
+  fl_beep();
+}
+
 static void showFileChooser(Fl_Native_File_Chooser *targetChooser,
                             Fl_Output *targetOutput) {
   switch (targetChooser->show()) {
     case -1:  // ERROR
-      fl_alert(targetChooser->errmsg());
+      sendAlert(targetChooser->errmsg());
       break;
     case 1:  // CANCEL
       break;
@@ -56,46 +69,125 @@ static void showFileChooser(Fl_Native_File_Chooser *targetChooser,
 }
 
 static void cb_modelFolderButton(Fl_Button *, void *) {
-  directoryChooser->directory("C:\\");
+  directoryChooser->directory(
+      "C:\\Users\\bobli\\Documents\\Code\\cpp\\MAXINE-VFX-SDK\\bin\\models");
   directoryChooser->title("Select the Model Directory");
 
   showFileChooser(directoryChooser, modelFolderOutput);
 }
 
 static void cb_inputFileButton(Fl_Button *, void *) {
-  fileChooser->directory("C:\\");
   fileChooser->title("Select the Input File");
 
   showFileChooser(fileChooser, inputFileOutput);
 }
 
 static void cb_outputFolderButton(Fl_Button *, void *) {
-  directoryChooser->directory("C:\\");
+  directoryChooser->directory(
+      "C:\\Users\\bobli\\Documents\\Code\\cpp\\MAXINE-VFX-SDK\\output");
   directoryChooser->title("Select the Output Directory");
 
   showFileChooser(directoryChooser, outputFolderOutput);
 }
 
-static void cb_submitButton(Fl_Button *, void *) {
-  printf("Effect: %s\n", effetChoice->text());
-  printf("Mode: %i", modeInput->value());
-  printf("Resolution: %i\n", int(resolutionInput->value()));
-  printf("Mode: %i", modeInput->value());
-  printf("Model Directory: %s\n", modelFolderOutput->value());
-  printf("Input File: %s\n", inputFileOutput->value());
+static void deactivateGUI() {
+  effetChoice->deactivate();
+  modeInput->deactivate();
+  resolutionInput->deactivate();
+  modelFolderButton->deactivate();
+  inputFileButton->deactivate();
+  outputFolderButton->deactivate();
+}
 
-  const char *outputFullPath =
-      std::format(
-          "{}{}", outputFolderOutput->value(),
-          fs::path(inputFileOutput->value()).filename().string().c_str())
-          .c_str();
-  printf("Output Directory: %s\n", outputFullPath);
-
-  conversionProgrees->value(50.f);
+static void activateGUI() {
+  effetChoice->activate();
+  modeInput->activate();
+  resolutionInput->activate();
+  modelFolderButton->activate();
+  inputFileButton->activate();
+  outputFolderButton->activate();
 }
 
 void guiCallback(float percentComplete) {
   conversionProgrees->value(percentComplete);
+  Fl::check();
+}
+
+static void cb_submitButton(Fl_Button *, void *) {
+  FXApp::Err fxErr = FXApp::errNone;
+  int nErrs = 0;
+  FXApp app;
+
+  deactivateGUI();
+
+  if (effetChoice->text() == nullptr) {
+    sendAlert("Efect Cannot be Empty!");
+    ++nErrs;
+  }
+
+  if ((effetChoice->text() == "SuperRes" or
+       effetChoice->text() == "Upscale") and
+      resolutionInput->value() == 0) {
+    sendAlert("Resolution cannot be 0 when effect is SuperRes or Upscale!");
+    ++nErrs;
+  }
+
+  if (modelFolderOutput->value() == "") {
+    sendAlert("Model Directory Cannot be Empty!");
+    ++nErrs;
+  }
+
+  if (inputFileOutput->value() == "") {
+    sendAlert("Input File Cannot be Empty!");
+    ++nErrs;
+  }
+
+  if (outputFolderOutput->value() == "") {
+    sendAlert("Output Directory Cannot be Empty!");
+    ++nErrs;
+  }
+
+  if (nErrs) {
+    activateGUI();
+    return;
+  }
+
+  FlagInfo finfo;
+  finfo.camRes = "1280x720";
+  finfo.codec = DEFAULT_CODEC;
+  finfo.mode = int(modeInput->value());
+  finfo.resolution = int(resolutionInput->value());
+  finfo.strength = 0.f;
+  finfo.verbose = false;
+  finfo.webcam = false;
+
+  std::string outputFullPath = std::format(
+      "{}\\{}", outputFolderOutput->value(),
+      fs::path(inputFileOutput->value()).filename().string().c_str());
+
+  fxErr = app.createEffect(effetChoice->text(), modelFolderOutput->value());
+  if (FXApp::errNone == fxErr) {
+    if (IsImageFile(inputFileOutput->value())) {
+      app.setShow(true);
+      fxErr = app.processImage(inputFileOutput->value(), outputFullPath.c_str(),
+                               finfo, *guiCallback);
+    } else {
+      app.setShow(false);
+      fxErr = app.processMovie(inputFileOutput->value(), outputFullPath.c_str(),
+                               finfo, *guiCallback);
+    }
+  }
+
+  if (fxErr) {
+    sendAlert(app.errorStringFromCode(fxErr));
+  }
+
+  sendAlert("Conversion Complete!");
+  conversionProgrees->value(0.f);
+  activateGUI();
+
+  ShellExecuteA(NULL, "open", outputFolderOutput->value(), NULL, NULL,
+                SW_SHOWDEFAULT);
 }
 
 int main(int argc, char **argv) {
@@ -114,9 +206,6 @@ int main(int argc, char **argv) {
   resolutionInput = new Fl_Value_Input(153, 55, 88, 20, "Target Resolution");
   resolutionInput->tooltip(
       "Must be 1.33x, 1.5x, 2x, 3x, or 4x of input resolution");
-
-  submitButton = new Fl_Button(30, 411, 93, 36, "Convert");
-  submitButton->callback((Fl_Callback *)cb_submitButton);
 
   Fl_Box *box1 = new Fl_Box(9, 95, 320, 84);
   box1->box(FL_BORDER_FRAME);
@@ -150,6 +239,9 @@ int main(int argc, char **argv) {
   outputFolderButton->callback((Fl_Callback *)cb_outputFolderButton);
 
   outputFolderOutput = new Fl_Output(21, 307, 300, 24);
+
+  submitButton = new Fl_Button(30, 411, 93, 36, "Convert");
+  submitButton->callback((Fl_Callback *)cb_submitButton);
 
   conversionProgrees =
       new Fl_Progress(153, 411, 168, 35, "Conversion Progrees");
